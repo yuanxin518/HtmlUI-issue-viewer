@@ -1,6 +1,12 @@
-<details open>
-<summary><b>🇨🇳 中文</b></summary>
-<br>
+<div align="center">
+
+[🇨🇳 中文](#chinese) · [🇬🇧 English](#english)
+
+</div>
+
+---
+
+## <a name="chinese"></a>🇨🇳 中文
 
 # HtmlUI Topic Viewer
 
@@ -119,13 +125,9 @@ server/                 # 后端源码
     └── proxy.ts        # AI 提示词代理
 ```
 
-</details>
-
 ---
 
-<details>
-<summary><b>🇬🇧 English</b></summary>
-<br>
+## <a name="english"></a>🇬🇧 English
 
 # HtmlUI Topic Viewer
 
@@ -233,8 +235,6 @@ server/                 # Backend
 └── ai/
     └── proxy.ts        # AI prompt proxy
 ```
-
-</details>
 
 ---
 
