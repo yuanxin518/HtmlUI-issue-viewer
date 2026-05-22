@@ -11,53 +11,13 @@
 # HtmlUI Topic Viewer
 
 ```mermaid
-mindmap
-  root((HtmlUI<br>Topic Viewer))
-    安装
-      依赖安装
-        Node.js 20+
-        npm install
-      启动服务
-        开发模式
-          npm run dev
-          npm run start
-        生产模式
-          npm run build
-          npm run start
-      Docker部署
-        docker build
-        docker run
-    怎么用
-      管理内容
-        编辑 directory.json
-        放入 HTML 文件
-        刷新浏览器
-      接口调用
-        Service API
-          分类 CRUD
-          话题 CRUD
-          文件管理
-          模板查询
-        AI Proxy
-          /ai/* 接口
-          返回提示词文本
-      数据热更新
-        卷挂载目录
-        改文件即生效
-    有什么用
-      话题化内容管理
-        分类组织 HTML
-        侧边栏导航树
-        iframe 预览
-      AI 集成
-        提示词代理层
-        模板生成指引
-        自动化的内容编排
-      工程化
-        React + AntD
-        TypeScript
-        Docker 部署
-        RESTful API
+flowchart LR
+    A[编辑 directory.json<br>配置分类和话题] --> B[将 HTML 文件<br>放入 topics/ 目录]
+    B --> C[刷新浏览器]
+    C --> D[左侧导航树<br>选择话题]
+    D --> E[右侧 iframe<br>预览 HTML 内容]
+    B -.-> F[或通过 API<br>上传/保存]
+    F -.-> C
 ```
 
 ### 安装
@@ -178,53 +138,13 @@ curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
 # HtmlUI Topic Viewer
 
 ```mermaid
-mindmap
-  root((HtmlUI<br>Topic Viewer))
-    Install
-      Dependencies
-        Node.js 20+
-        npm install
-      Start
-        Development
-          npm run dev
-          npm run start
-        Production
-          npm run build
-          npm run start
-      Docker
-        docker build
-        docker run
-    Usage
-      Manage Content
-        Edit directory.json
-        Add HTML files
-        Refresh browser
-      API
-        Service API
-          Category CRUD
-          Topic CRUD
-          File mgmt
-          Templates
-        AI Proxy
-          /ai/* endpoints
-          Returns prompt text
-      Hot Reload
-        Volume mount
-        Instant update
-    Features
-      Topic-based CMS
-        Organized by category
-        Sidebar navigation
-        iframe preview
-      AI Integration
-        Prompt proxy
-        Template guidance
-        Automated content
-      Engineering
-        React + AntD
-        TypeScript
-        Docker
-        RESTful API
+flowchart LR
+    A[Edit directory.json<br>configure categories & topics] --> B[Place HTML files<br>into topics/ directory]
+    B --> C[Refresh browser]
+    C --> D[Select topic<br>from sidebar tree]
+    D --> E[Preview HTML<br>in iframe pane]
+    B -.-> F[Or via API<br>upload / save content]
+    F -.-> C
 ```
 
 ### Install
