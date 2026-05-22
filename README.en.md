@@ -12,15 +12,7 @@ A web-based system for managing and browsing topic-based HTML content through a 
 
 ### Features
 
-**Directory-driven** — Categories and topics are defined in a JSON config file. Sidebar tree navigation, click to switch.
-
-**HTML as content** — Each topic is a standalone HTML file rendered in an iframe. Full CSS and JavaScript support, content style is isolated from the host page.
-
-**AI-assisted generation** — Built-in template prompts at `/ai/templates/:id`. AI models can fetch HTML structure guidance and generate consistent topic pages.
-
-**Hot reload** — Data directory is volume-mounted in Docker. Add, edit, or delete files and refresh the browser — no restart needed.
-
-**Engineering** — React 18 + Ant Design + TypeScript frontend, Express backend, one-command Docker deployment, full RESTful API.
+Manage topics by organizing HTML files in a directory structure and render them directly in the browser.
 
 ---
 
