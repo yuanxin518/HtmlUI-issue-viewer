@@ -52,70 +52,61 @@ docker run -d -p 1234:1234 \
 
 ### Usage
 
-#### Manage Topics
+Feed prompts to AI to generate HTML topic content and save it into the system:
 
-All runtime data lives in `data/` — no restart required:
+#### 1. Describe your requirements
 
-```
-data/
-├── directory.json       # Category and topic config
-└── topics/              # HTML topic files
-    ├── example.html
-    └── ...
-```
+Tell the AI what content you want, for example "Generate a React introduction page".
+
+#### 2. Get template guidance
+
+Call the AI endpoint to get the HTML structure prompt for your desired template style:
 
 ```bash
-# 1. Place an HTML file
-cp output.html data/topics/my-topic.html
-
-# 2. Edit the directory config
-vim data/directory.json
-
-# 3. Refresh browser
-```
-
-**directory.json format:**
-
-```json
-{
-  "categories": [
-    {
-      "name": "Category Name",
-      "icon": "FolderOpenOutlined",
-      "topics": [
-        { "id": "topic-id", "title": "Topic Title", "file": "file.html" }
-      ]
-    }
-  ]
-}
-```
-
-#### API
-
-Two API layers are available:
-
-| Layer | Path | Description |
-|-------|------|-------------|
-| Service API | `/api/*` | Returns JSON for frontend or scripts |
-| AI Proxy | `/ai/*` | Returns Markdown prompts for AI agents |
-
-```bash
-# List topics
-curl http://localhost:1234/api/categories
-
-# Get template prompt (AI uses this to generate HTML)
 curl http://localhost:1234/ai/templates/tech-doc
-
-# List all AI endpoints
-curl http://localhost:1234/ai
 ```
 
-#### Templates
+> Returns a Markdown prompt with HTML skeleton, style requirements, content structure, etc. Feed this prompt along with your requirements to the AI.
+
+#### 3. AI generates HTML
+
+The AI produces a complete HTML file (with styles and content) based on the template guidance.
+
+#### 4. Save the HTML file
+
+Save the generated HTML content via the API into `data/topics/`:
 
 ```bash
-curl http://localhost:1234/ai/templates/tech-doc    # Technical docs
-curl http://localhost:1234/ai/templates/review-doc   # Code review
-curl http://localhost:1234/ai/templates/note-doc     # Knowledge notes
+curl -X POST http://localhost:1234/api/files/content \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filename": "react-intro.html",
+    "content": "<!DOCTYPE html>..."
+  }'
+```
+
+#### 5. Register the topic
+
+Add the new file as a topic entry, then refresh the browser to view it:
+
+```bash
+curl -X POST http://localhost:1234/api/topics \
+  -H "Content-Type: application/json" \
+  -d '{
+    "categoryName": "React 入门",
+    "id": "react-intro",
+    "title": "React 简介",
+    "file": "react-intro.html"
+  }'
+```
+
+#### Flow
+
+```
+Your requirements → Get template prompt → AI generates HTML → Save file → Register topic → Browser shows it
+                           ↑                                              ↑
+                   GET /ai/templates/:id                       POST /api/files/content
+                                                                      POST /api/topics
 ```
 
 ---

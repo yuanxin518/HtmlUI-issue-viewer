@@ -52,72 +52,61 @@ docker run -d -p 1234:1234 \
 
 ### 怎么用
 
-#### 添加话题内容
+给 AI 喂提示词，让它生成 HTML 话题内容并存入系统：
 
-系统通过 `data/` 目录管理所有运行时内容，无需重启服务：
+#### 1. 说明你的要求
 
-```
-data/
-├── directory.json       # 分类和话题配置
-└── topics/              # HTML 话题文件
-    ├── example.html
-    └── ...
-```
+向 AI 描述你想要的话题内容，例如「生成一篇 React 入门的介绍文档」。
 
-操作步骤：
+#### 2. 获取模板指引
+
+调用 AI 接口获取对应模板的 HTML 结构提示词，指导 AI 生成符合风格的页面：
 
 ```bash
-# 1. 放入 HTML 文件
-cp output.html data/topics/my-topic.html
-
-# 2. 编辑目录配置
-vim data/directory.json
-
-# 3. 刷新浏览器即可
-```
-
-**directory.json 格式：**
-
-```json
-{
-  "categories": [
-    {
-      "name": "分类名称",
-      "icon": "FolderOpenOutlined",
-      "topics": [
-        { "id": "topic-id", "title": "话题标题", "file": "文件名.html" }
-      ]
-    }
-  ]
-}
-```
-
-#### 调用 API
-
-系统提供两层 API：
-
-| 层 | 路径 | 说明 |
-|----|------|-------|
-| Service API | `/api/*` | 返回 JSON，供前端或脚本调用 |
-| AI Proxy | `/ai/*` | 返回 Markdown 提示词，供 AI 模型调用 |
-
-```bash
-# 获取话题列表
-curl http://localhost:1234/api/categories
-
-# 获取模板提示词（AI 用此生成 HTML）
 curl http://localhost:1234/ai/templates/tech-doc
-
-# 查看所有 AI 接口
-curl http://localhost:1234/ai
 ```
 
-#### 模板
+> 返回 Markdown 格式的提示词：包含 HTML 骨架、样式要求、内容结构等。将此提示词连同你的需求一起发给 AI。
+
+#### 3. AI 生成 HTML 内容
+
+AI 根据模板指引生成完整的 HTML 文件内容（包含样式和正文）。
+
+#### 4. 保存 HTML 文件
+
+将生成的 HTML 内容通过接口保存到 `data/topics/` 目录：
 
 ```bash
-curl http://localhost:1234/ai/templates/tech-doc    # 技术文档
-curl http://localhost:1234/ai/templates/review-doc   # 代码审查报告
-curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
+curl -X POST http://localhost:1234/api/files/content \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filename": "react-intro.html",
+    "content": "<!DOCTYPE html>..."
+  }'
+```
+
+#### 5. 添加话题
+
+将新文件注册为话题，刷新页面即可展示：
+
+```bash
+curl -X POST http://localhost:1234/api/topics \
+  -H "Content-Type: application/json" \
+  -d '{
+    "categoryName": "React 入门",
+    "id": "react-intro",
+    "title": "React 简介",
+    "file": "react-intro.html"
+  }'
+```
+
+#### 完整流程
+
+```
+用户需求 → 获取模板提示词 → AI 生成 HTML → 保存文件 → 注册话题 → 浏览器展示
+                      ↑                          ↑
+              GET /ai/templates/:id     POST /api/files/content
+                                               POST /api/topics
 ```
 
 ---
