@@ -1,12 +1,6 @@
-<div align="center">
-
-[🇨🇳 中文](#chinese) · [🇬🇧 English](#english)
-
-</div>
-
----
-
-## 🇨🇳 中文 <a name="chinese"></a>
+<details open>
+<summary><b>🇨🇳 中文</b></summary>
+<br>
 
 # HtmlUI Topic Viewer
 
@@ -125,9 +119,13 @@ server/                 # 后端源码
     └── proxy.ts        # AI 提示词代理
 ```
 
+</details>
+
 ---
 
-## 🇬🇧 English <a name="english"></a>
+<details>
+<summary><b>🇬🇧 English</b></summary>
+<br>
 
 # HtmlUI Topic Viewer
 
@@ -236,8 +234,8 @@ server/                 # Backend
     └── proxy.ts        # AI prompt proxy
 ```
 
+</details>
+
 ---
 
-<div align="center">
-  MIT License
-</div>
+<div align="center">MIT License</div>
