@@ -126,10 +126,13 @@ curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
 
 ### 有什么用
 
-- **话题化组织** — 以分类和话题的方式管理 HTML 内容，侧边栏导航清晰，适合文档站、知识库、作品集等场景。
-- **AI 辅助生成** — AI Proxy 层提供提示词接口，AI 模型可直接调用生成符合模板风格的 HTML 页面，减少重复工作。
-- **热更新** — 数据目录通过 Docker 卷挂载，添加或修改文件后刷新浏览器即生效，无需重启容器或重建镜像。
-- **工程化** — 基于 React 18 + Ant Design + TypeScript 构建，后端使用 Express，支持 Docker 一键部署。
+适合在网页上以目录结构管理和浏览 HTML 话题内容，用于文档展示、知识库、AI 生成内容的可视化预览等场景。
+
+- **目录化管理** — 通过 JSON 配置分类和话题层级，侧边栏树形导航，点击即切换，结构清晰。
+- **HTML 即内容** — 每个话题对应一个 HTML 文件，页面内 iframe 直接渲染，支持完整 CSS 和 JavaScript，内容样式不受宿主页面干扰。
+- **AI 辅助生成** — 内置模板提示词接口，AI 模型可调用 `/ai/templates/:id` 获取 HTML 结构指引，快速生成符合风格的话题页面。
+- **热更新** — 数据目录通过 Docker 卷挂载，增删改 HTML 文件或目录配置后刷新浏览器即生效，无需重启。
+- **工程化支撑** — React 18 + Ant Design + TypeScript 前端，Express 后端，Docker 一键部署，提供完整的 RESTful API。
 
 ---
 
@@ -248,10 +251,13 @@ curl http://localhost:1234/ai/templates/note-doc     # Knowledge notes
 
 ### Features
 
-- **Topic-based CMS** — Organize HTML content by category with sidebar navigation. Suitable for documentation hubs, knowledge bases, and portfolios.
-- **AI-assisted generation** — AI Proxy layer provides prompt endpoints. AI models can call these to generate template-styled HTML pages, reducing repetitive work.
-- **Hot reload** — Data directory is volume-mounted in Docker. Add or modify files, refresh the browser — no container restart or image rebuild needed.
-- **Engineering** — Built with React 18 + Ant Design + TypeScript, backed by Express, one-command Docker deployment.
+A web-based system for managing and browsing topic-based HTML content through a directory structure. Suitable for documentation, knowledge bases, and previewing AI-generated content.
+
+- **Directory-driven** — Categories and topics are defined in a JSON config file. Sidebar tree navigation, click to switch.
+- **HTML as content** — Each topic is a standalone HTML file rendered in an iframe. Full CSS and JavaScript support, content style is isolated from the host page.
+- **AI-assisted generation** — Built-in template prompts at `/ai/templates/:id`. AI models can fetch HTML structure guidance and generate consistent topic pages.
+- **Hot reload** — Data directory is volume-mounted in Docker. Add, edit, or delete files and refresh the browser — no restart needed.
+- **Engineering** — React 18 + Ant Design + TypeScript frontend, Express backend, one-command Docker deployment, full RESTful API.
 
 ---
 
