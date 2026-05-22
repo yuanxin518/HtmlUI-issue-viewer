@@ -52,29 +52,39 @@ docker run -d -p 1234:1234 \
 
 ### 怎么用
 
-给 AI 喂提示词，让它生成 HTML 话题内容并存入系统：
+#### 提示词示例
 
-#### 1. 说明你的要求
+把以下提示词直接发给 AI，即可生成一个话题 HTML 页面：
 
-向 AI 描述你想要的话题内容，例如「生成一篇 React 入门的介绍文档」。
+```markdown
+请生成一个技术文档风格的话题 HTML 页面，要求如下：
 
-#### 2. 获取模板指引
+- 深色主题（背景 #0d1117，文字 #e6edf3）
+- 标题使用 emoji + 文字，如 "📖 React 入门"
+- 每个小节用 <h2> 分隔
+- 代码示例使用 <pre><code>，深色背景
+- 关键提示用卡片 <div class="card"> 包裹
 
-调用 AI 接口获取对应模板的 HTML 结构提示词，指导 AI 生成符合风格的页面：
-
-```bash
-curl http://localhost:1234/ai/templates/tech-doc
+输出一个完整的 HTML 文件，包含 <!DOCTYPE html> 声明。
 ```
 
-> 返回 Markdown 格式的提示词：包含 HTML 骨架、样式要求、内容结构等。将此提示词连同你的需求一起发给 AI。
+AI 返回 HTML 内容后，按以下步骤存入系统。
 
-#### 3. AI 生成 HTML 内容
+#### 实现步骤
 
-AI 根据模板指引生成完整的 HTML 文件内容（包含样式和正文）。
+**1. 获取模板指引（可选）**
 
-#### 4. 保存 HTML 文件
+系统内置模板可提供更详细的 HTML 结构要求：
 
-将生成的 HTML 内容通过接口保存到 `data/topics/` 目录：
+```bash
+curl http://localhost:1234/ai/templates/tech-doc    # 技术文档
+curl http://localhost:1234/ai/templates/review-doc   # 代码审查
+curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
+```
+
+**2. 保存 HTML 文件**
+
+将 AI 返回的 HTML 内容保存到 `data/topics/`：
 
 ```bash
 curl -X POST http://localhost:1234/api/files/content \
@@ -85,9 +95,9 @@ curl -X POST http://localhost:1234/api/files/content \
   }'
 ```
 
-#### 5. 添加话题
+**3. 注册话题**
 
-将新文件注册为话题，刷新页面即可展示：
+将新文件添加为话题，刷新页面即可展示：
 
 ```bash
 curl -X POST http://localhost:1234/api/topics \
@@ -103,10 +113,9 @@ curl -X POST http://localhost:1234/api/topics \
 #### 完整流程
 
 ```
-用户需求 → 获取模板提示词 → AI 生成 HTML → 保存文件 → 注册话题 → 浏览器展示
-                      ↑                          ↑
-              GET /ai/templates/:id     POST /api/files/content
-                                               POST /api/topics
+提示词 → AI 生成 HTML → 保存文件 → 注册话题 → 浏览器展示
+                          ↑              ↑
+                  POST /api/files/content  POST /api/topics
 ```
 
 ---

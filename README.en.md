@@ -52,29 +52,39 @@ docker run -d -p 1234:1234 \
 
 ### Usage
 
-Feed prompts to AI to generate HTML topic content and save it into the system:
+#### Prompt Example
 
-#### 1. Describe your requirements
+Copy the following prompt and send it directly to an AI to generate a topic HTML page:
 
-Tell the AI what content you want, for example "Generate a React introduction page".
+```markdown
+Generate a technical documentation style HTML page with these requirements:
 
-#### 2. Get template guidance
+- Dark theme (background #0d1117, text #e6edf3)
+- Title with emoji + text, e.g. "📖 React Introduction"
+- Each section separated by <h2>
+- Code examples in <pre><code> with dark background
+- Key tips wrapped in <div class="card">
 
-Call the AI endpoint to get the HTML structure prompt for your desired template style:
-
-```bash
-curl http://localhost:1234/ai/templates/tech-doc
+Output a complete HTML file with <!DOCTYPE html> declaration.
 ```
 
-> Returns a Markdown prompt with HTML skeleton, style requirements, content structure, etc. Feed this prompt along with your requirements to the AI.
+Once the AI returns the HTML, follow the steps below to save it into the system.
 
-#### 3. AI generates HTML
+#### Implementation Steps
 
-The AI produces a complete HTML file (with styles and content) based on the template guidance.
+**1. Get template guidance (optional)**
 
-#### 4. Save the HTML file
+Built-in templates provide detailed HTML structure requirements:
 
-Save the generated HTML content via the API into `data/topics/`:
+```bash
+curl http://localhost:1234/ai/templates/tech-doc    # Technical docs
+curl http://localhost:1234/ai/templates/review-doc   # Code review
+curl http://localhost:1234/ai/templates/note-doc     # Knowledge notes
+```
+
+**2. Save the HTML file**
+
+Save the AI-generated HTML content into `data/topics/`:
 
 ```bash
 curl -X POST http://localhost:1234/api/files/content \
@@ -85,7 +95,7 @@ curl -X POST http://localhost:1234/api/files/content \
   }'
 ```
 
-#### 5. Register the topic
+**3. Register the topic**
 
 Add the new file as a topic entry, then refresh the browser to view it:
 
@@ -103,10 +113,9 @@ curl -X POST http://localhost:1234/api/topics \
 #### Flow
 
 ```
-Your requirements → Get template prompt → AI generates HTML → Save file → Register topic → Browser shows it
-                           ↑                                              ↑
-                   GET /ai/templates/:id                       POST /api/files/content
-                                                                      POST /api/topics
+Prompt → AI generates HTML → Save file → Register topic → Browser shows it
+                                ↑              ↑
+                        POST /api/files/content  POST /api/topics
 ```
 
 ---
