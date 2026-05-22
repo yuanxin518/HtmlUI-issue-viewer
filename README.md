@@ -1,8 +1,18 @@
+<div align="center">
+
+[🇨🇳 中文](#chinese) · [🇬🇧 English](#english)
+
+</div>
+
+---
+
+## 🇨🇳 中文 <a name="chinese"></a>
+
 # HtmlUI Topic Viewer
 
 基于 React + Ant Design + Express 的话题式 HTML 内容管理与预览系统。
 
-## 架构
+### 架构
 
 ```
 浏览器 (SPA) → Express Server ─┬─ /api/*   → JSON 数据接口
@@ -15,7 +25,7 @@
 - **AI Proxy**（`/ai/*`）— 与 Service API 路径对应，返回 Markdown 格式的提示词文本，供 AI 模型使用。
 - **数据层** — 运行时数据存放于 `data/` 目录，通过 Docker 卷挂载实现热更新。
 
-## 快速开始
+### 快速开始
 
 ```bash
 # 安装依赖
@@ -30,7 +40,7 @@ npm run build
 npm run start      # SPA + API 统一在 :1234
 ```
 
-### Docker 部署
+#### Docker 部署
 
 ```bash
 docker build -t topic-viewer .
@@ -42,9 +52,9 @@ docker run -d -p 1234:1234 \
 
 数据目录通过卷挂载，修改文件后刷新浏览器即可生效，无需重建镜像。
 
-## API 参考
+### API 参考
 
-### Service 接口
+#### Service 接口
 
 | 方法 | 路径 | 说明 |
 |--------|------|------|
@@ -62,7 +72,7 @@ docker run -d -p 1234:1234 \
 | GET | `/api/templates` | 获取模板列表 |
 | GET | `/api/templates/:id` | 获取模板详情 |
 
-### AI Proxy 接口
+#### AI Proxy 接口
 
 `/ai/*` 接口返回 Markdown 格式的提示词文本，而非 JSON 数据。
 
@@ -78,7 +88,7 @@ docker run -d -p 1234:1234 \
 | GET | `/ai/templates` | 提示词：模板列表 |
 | GET | `/ai/templates/:id` | 提示词：模板详情 |
 
-## 数据目录
+### 数据目录
 
 ```
 data/
@@ -91,7 +101,7 @@ data/
 2. 编辑 `data/directory.json` 添加条目
 3. 刷新浏览器 — 使用 Docker 卷挂载时即时生效
 
-## 项目结构
+### 项目结构
 
 ```
 src/                    # 前端源码
@@ -115,6 +125,119 @@ server/                 # 后端源码
     └── proxy.ts        # AI 提示词代理
 ```
 
-## 许可
+---
 
-MIT
+## 🇬🇧 English <a name="english"></a>
+
+# HtmlUI Topic Viewer
+
+A topic-based HTML content management and preview system. Built with React, Ant Design, and Express.
+
+### Architecture
+
+```
+Browser (SPA) → Express Server ─┬─ /api/*   → JSON CRUD
+                                 ├─ /ai/*    → Markdown prompts
+                                 └─ /topics/ → Static HTML files
+```
+
+- **SPA** — React 18 + Ant Design. Sidebar navigation with category/topic tree, HTML preview via iframe.
+- **Service API** (`/api/*`) — RESTful endpoints for categories, topics, files, and templates.
+- **AI Proxy** (`/ai/*`) — Mirrors the Service API but returns Markdown prompt text for AI agents.
+- **Data Layer** — Runtime data in `data/` directory, mounted as Docker volume for hot-reload.
+
+### Quick Start
+
+```bash
+npm install
+npm run dev        # Vite dev server on :1233
+npm run start      # Express API server on :1234
+
+# Production
+npm run build
+npm run start      # Serves both SPA and API on :1234
+```
+
+#### Docker
+
+```bash
+docker build -t topic-viewer .
+docker run -d -p 1234:1234 \
+  -v $(pwd)/data/directory.json:/app/data/directory.json \
+  -v $(pwd)/data/topics:/app/data/topics \
+  topic-viewer
+```
+
+### API Reference
+
+#### Service Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/categories` | List categories with topics |
+| POST | `/api/categories` | Create category |
+| PUT | `/api/categories/:name` | Update category |
+| DELETE | `/api/categories/:name` | Delete category |
+| POST | `/api/topics` | Add topic |
+| PUT | `/api/topics/:id` | Update topic |
+| DELETE | `/api/topics/:id` | Delete topic |
+| GET | `/api/files` | List HTML files |
+| POST | `/api/files/upload` | Upload HTML file |
+| POST | `/api/files/content` | Save HTML content |
+| DELETE | `/api/files/:filename` | Delete file |
+| GET | `/api/templates` | List templates |
+| GET | `/api/templates/:id` | Get template detail |
+
+#### AI Proxy Endpoints
+
+All `/ai/*` endpoints return Markdown prompt text instead of JSON.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/ai` | List available AI endpoints |
+| GET | `/ai/categories` | Prompt: list categories |
+| POST | `/ai/categories` | Prompt: create category |
+| GET | `/ai/topics` | Prompt: list topics |
+| POST | `/ai/topics` | Prompt: add topic |
+| GET | `/ai/files` | Prompt: list files |
+| POST | `/ai/files/content` | Prompt: save HTML content |
+| GET | `/ai/templates` | Prompt: list templates |
+| GET | `/ai/templates/:id` | Prompt: get template detail |
+
+### Data Directory
+
+```
+data/
+├── directory.json     # Category and topic configuration
+└── topics/            # HTML topic files (not version-controlled)
+```
+
+### Project Structure
+
+```
+src/                    # Frontend
+├── types/              # TypeScript definitions
+├── api/                # API client
+├── hooks/              # Custom hooks
+├── components/         # UI components
+│   ├── Layout/         # App layout
+│   ├── Sidebar/        # Navigation tree
+│   └── Viewer/         # HTML preview
+└── App.tsx
+
+server/                 # Backend
+├── index.ts            # Express entry point
+├── routes/             # Service API handlers
+│   ├── categories.ts
+│   ├── topics.ts
+│   ├── files.ts
+│   └── templates.ts
+└── ai/
+    └── proxy.ts        # AI prompt proxy
+```
+
+---
+
+<div align="center">
+  MIT License
+</div>
