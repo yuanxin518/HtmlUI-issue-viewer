@@ -5,82 +5,42 @@ A topic-based HTML content management and preview system. Built with React, Ant 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│  Browser (SPA)                                  │
-│  React + Ant Design                             │
-└──────────────────┬──────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────┐
-│  Express Server                                 │
-│                                                  │
-│  ┌──────────────┐  ┌──────────────────────────┐ │
-│  │  /api/*      │  │  /ai/*                   │ │
-│  │  JSON CRUD   │  │  Markdown Prompt Proxy   │ │
-│  └──────┬───────┘  └──────────┬───────────────┘ │
-│         │                     │                  │
-│         ▼                     │                  │
-│  ┌──────────────┐             │                  │
-│  │  data/       │◄────────────┘                  │
-│  │  topics/     │                                │
-│  │  directory   │                                │
-│  └──────────────┘                                │
-└──────────────────────────────────────────────────┘
+Browser (SPA) → Express Server ─┬─ /api/*   → JSON CRUD
+                                 ├─ /ai/*    → Markdown prompts
+                                 └─ /topics/ → Static HTML files
 ```
 
-### Layers
-
-- **SPA** — React 18 application with Ant Design UI framework. Provides a sidebar navigation for categories and topics, and renders HTML content in an iframe preview pane.
-- **Service API** (`/api/*`) — RESTful endpoints for managing categories, topics, HTML files, and templates. Returns JSON.
-- **AI Proxy** (`/ai/*`) — Mirrors the Service API endpoints but returns Markdown-formatted prompt text. Designed for AI agents that need natural language descriptions of available operations and data structures.
-- **Data Layer** — All runtime data (topic HTML files, directory configuration) is stored in the `data/` directory, which is mounted as a Docker volume for hot-reload without restarts.
+- **SPA** — React 18 + Ant Design. Sidebar navigation with category/topic tree, HTML preview via iframe.
+- **Service API** (`/api/*`) — RESTful endpoints for categories, topics, files, and templates.
+- **AI Proxy** (`/ai/*`) — Mirrors the Service API but returns Markdown prompt text for AI agents.
+- **Data Layer** — Runtime data in `data/` directory, mounted as Docker volume for hot-reload.
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 20+
-- npm
-
-### Development
-
 ```bash
-# Install dependencies
+# Install
 npm install
 
-# Start frontend dev server (port 1233)
-npm run dev
+# Development (frontend on :1233, backend on :1234)
+npm run dev        # Vite dev server
+npm run start      # Express API server
 
-# Start backend API server (port 1234)
-npm run start
-
-# Or both concurrently (in separate terminals)
-```
-
-### Production
-
-```bash
-# Build frontend assets
+# Production
 npm run build
-
-# Start production server
-npm run start
-# Serves on http://localhost:1234
+npm run start      # Serves both SPA and API on :1234
 ```
 
 ### Docker
 
 ```bash
 docker build -t topic-viewer .
-docker run -d \
-  --name topic-viewer \
-  -p 1234:1234 \
+docker run -d -p 1234:1234 \
   -v $(pwd)/data/directory.json:/app/data/directory.json \
   -v $(pwd)/data/topics:/app/data/topics \
   topic-viewer
 ```
 
-Data files are mounted as volumes, so updates take effect immediately without rebuilding the image.
+Data files are volume-mounted — updates take effect without rebuilding.
 
 ## API Reference
 
@@ -88,32 +48,31 @@ Data files are mounted as volumes, so updates take effect immediately without re
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/categories` | List all categories with topics |
-| POST | `/api/categories` | Create a new category |
-| PUT | `/api/categories/:name` | Update a category |
-| DELETE | `/api/categories/:name` | Delete a category |
-| POST | `/api/topics` | Add a topic to a category |
-| PUT | `/api/topics/:id` | Update a topic |
-| DELETE | `/api/topics/:id` | Delete a topic |
-| GET | `/api/files` | List available HTML files |
-| POST | `/api/files/upload` | Upload an HTML file |
-| POST | `/api/files/content` | Save HTML content directly |
-| DELETE | `/api/files/:filename` | Delete an HTML file |
-| GET | `/api/templates` | List available templates |
-| GET | `/api/templates/:id` | Get template details |
+| GET | `/api/categories` | List categories with topics |
+| POST | `/api/categories` | Create category |
+| PUT | `/api/categories/:name` | Update category |
+| DELETE | `/api/categories/:name` | Delete category |
+| POST | `/api/topics` | Add topic |
+| PUT | `/api/topics/:id` | Update topic |
+| DELETE | `/api/topics/:id` | Delete topic |
+| GET | `/api/files` | List HTML files |
+| POST | `/api/files/upload` | Upload HTML file |
+| POST | `/api/files/content` | Save HTML content |
+| DELETE | `/api/files/:filename` | Delete file |
+| GET | `/api/templates` | List templates |
+| GET | `/api/templates/:id` | Get template detail |
 
 ### AI Proxy Endpoints
 
-All endpoints under `/ai/*` mirror the service API paths but return Markdown-format prompt text. These are intended for AI agents that need instruction prompts rather than raw data.
+All `/ai/*` endpoints return Markdown prompt text instead of JSON.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/ai` | List all available AI endpoints |
+| GET | `/ai` | List available AI endpoints |
 | GET | `/ai/categories` | Prompt: list categories |
 | POST | `/ai/categories` | Prompt: create category |
 | GET | `/ai/topics` | Prompt: list topics |
 | POST | `/ai/topics` | Prompt: add topic |
-| DELETE | `/ai/topics/:id` | Prompt: delete topic |
 | GET | `/ai/files` | Prompt: list files |
 | POST | `/ai/files/content` | Prompt: save HTML content |
 | GET | `/ai/templates` | Prompt: list templates |
@@ -124,36 +83,30 @@ All endpoints under `/ai/*` mirror the service API paths but return Markdown-for
 ```
 data/
 ├── directory.json     # Category and topic configuration
-└── topics/            # HTML topic files
-    ├── react-intro.html
-    ├── review-current.html
-    └── ...
+└── topics/            # HTML topic files (not version-controlled)
 ```
 
-The `data/` directory is excluded from version control. To add new topics:
-
+To add topics:
 1. Place the HTML file in `data/topics/`
-2. Update `data/directory.json` with the new topic entry
-3. Refresh the browser
-
-Changes take effect immediately when using Docker volume mounts.
+2. Update `data/directory.json`
+3. Refresh browser — changes are instant with Docker volumes
 
 ## Project Structure
 
 ```
-src/                    # Frontend source
-├── types/              # TypeScript type definitions
-├── api/                # API client layer
-├── hooks/              # Custom React hooks
+src/                    # Frontend
+├── types/              # TypeScript definitions
+├── api/                # API client
+├── hooks/              # Custom hooks
 ├── components/         # UI components
-│   ├── Layout/         # Application layout
-│   ├── Sidebar/        # Category and topic navigation
-│   └── Viewer/         # HTML content iframe viewer
-└── App.tsx             # Application entry
+│   ├── Layout/         # App layout
+│   ├── Sidebar/        # Navigation tree
+│   └── Viewer/         # HTML preview
+└── App.tsx
 
-server/                 # Backend source
-├── index.ts            # Express server entry
-├── routes/             # Service API route handlers
+server/                 # Backend
+├── index.ts            # Express entry point
+├── routes/             # Service API handlers
 │   ├── categories.ts
 │   ├── topics.ts
 │   ├── files.ts
