@@ -10,34 +10,79 @@
 
 # HtmlUI Topic Viewer
 
-基于 React + Ant Design + Express 的话题式 HTML 内容管理与预览系统。
-
-### 架构
-
+```mermaid
+mindmap
+  root((HtmlUI<br>Topic Viewer))
+    安装
+      依赖安装
+        Node.js 20+
+        npm install
+      启动服务
+        开发模式
+          npm run dev
+          npm run start
+        生产模式
+          npm run build
+          npm run start
+      Docker部署
+        docker build
+        docker run
+    怎么用
+      管理内容
+        编辑 directory.json
+        放入 HTML 文件
+        刷新浏览器
+      接口调用
+        Service API
+          分类 CRUD
+          话题 CRUD
+          文件管理
+          模板查询
+        AI Proxy
+          /ai/* 接口
+          返回提示词文本
+      数据热更新
+        卷挂载目录
+        改文件即生效
+    有什么用
+      话题化内容管理
+        分类组织 HTML
+        侧边栏导航树
+        iframe 预览
+      AI 集成
+        提示词代理层
+        模板生成指引
+        自动化的内容编排
+      工程化
+        React + AntD
+        TypeScript
+        Docker 部署
+        RESTful API
 ```
-浏览器 (SPA) → Express Server ─┬─ /api/*   → JSON 数据接口
-                               ├─ /ai/*    → Markdown 提示词
-                               └─ /topics/ → 静态 HTML 文件
-```
 
-- **SPA** — React 18 + Ant Design。左侧分类/话题树导航，右侧 iframe 预览 HTML 内容。
-- **Service API**（`/api/*`）— 分类、话题、文件、模板的 RESTful CRUD 接口。
-- **AI Proxy**（`/ai/*`）— 与 Service API 路径对应，返回 Markdown 格式的提示词文本，供 AI 模型使用。
-- **数据层** — 运行时数据存放于 `data/` 目录，通过 Docker 卷挂载实现热更新。
+### 安装
 
-### 快速开始
+**环境要求：** Node.js 20+
 
 ```bash
+# 克隆项目
+git clone https://github.com/yuanxin518/HtmlUI-issue-viewer.git
+cd HtmlUI-issue-viewer
+
 # 安装依赖
 npm install
+```
 
+#### 启动服务
+
+```bash
 # 开发模式（前端 :1233，后端 :1234）
-npm run dev        # Vite 开发服务器
-npm run start      # Express API 服务器
+npm run dev        # 启动 Vite 前端开发服务器
+npm run start      # 启动 Express API 服务器
 
 # 生产模式
-npm run build
-npm run start      # SPA + API 统一在 :1234
+npm run build      # 构建前端静态资源
+npm run start      # 统一在 :1234 端口提供服务
 ```
 
 #### Docker 部署
@@ -50,80 +95,81 @@ docker run -d -p 1234:1234 \
   topic-viewer
 ```
 
-数据目录通过卷挂载，修改文件后刷新浏览器即可生效，无需重建镜像。
+### 怎么用
 
-### API 参考
+#### 添加话题内容
 
-#### Service 接口
-
-| 方法 | 路径 | 说明 |
-|--------|------|------|
-| GET | `/api/categories` | 获取所有分类及话题 |
-| POST | `/api/categories` | 新建分类 |
-| PUT | `/api/categories/:name` | 更新分类 |
-| DELETE | `/api/categories/:name` | 删除分类 |
-| POST | `/api/topics` | 添加话题 |
-| PUT | `/api/topics/:id` | 更新话题 |
-| DELETE | `/api/topics/:id` | 删除话题 |
-| GET | `/api/files` | 列出 HTML 文件 |
-| POST | `/api/files/upload` | 上传 HTML 文件 |
-| POST | `/api/files/content` | 直接保存 HTML 内容 |
-| DELETE | `/api/files/:filename` | 删除文件 |
-| GET | `/api/templates` | 获取模板列表 |
-| GET | `/api/templates/:id` | 获取模板详情 |
-
-#### AI Proxy 接口
-
-`/ai/*` 接口返回 Markdown 格式的提示词文本，而非 JSON 数据。
-
-| 方法 | 路径 | 说明 |
-|--------|------|------|
-| GET | `/ai` | 查看所有可用 AI 接口 |
-| GET | `/ai/categories` | 提示词：获取分类列表 |
-| POST | `/ai/categories` | 提示词：创建分类 |
-| GET | `/ai/topics` | 提示词：获取话题列表 |
-| POST | `/ai/topics` | 提示词：添加话题 |
-| GET | `/ai/files` | 提示词：文件列表 |
-| POST | `/ai/files/content` | 提示词：保存 HTML |
-| GET | `/ai/templates` | 提示词：模板列表 |
-| GET | `/ai/templates/:id` | 提示词：模板详情 |
-
-### 数据目录
+系统通过 `data/` 目录管理所有运行时内容，无需重启服务：
 
 ```
 data/
-├── directory.json     # 分类和话题配置
-└── topics/            # HTML 话题文件（不纳入版本控制）
+├── directory.json     # 编辑此文件管理分类和话题列表
+└── topics/            # 存放 HTML 话题文件
+    ├── example-1.html
+    └── example-2.html
 ```
 
-添加话题流程：
-1. 将 HTML 文件放入 `data/topics/`
-2. 编辑 `data/directory.json` 添加条目
-3. 刷新浏览器 — 使用 Docker 卷挂载时即时生效
+```bash
+# 1. 放入 HTML 文件
+cp output.html data/topics/my-topic.html
 
-### 项目结构
+# 2. 编辑目录配置
+vim data/directory.json
 
+# 3. 浏览器刷新即可看到新话题
 ```
-src/                    # 前端源码
-├── types/              # TypeScript 类型定义
-├── api/                # API 客户端
-├── hooks/              # 自定义 Hook
-├── components/         # UI 组件
-│   ├── Layout/         # 页面布局
-│   ├── Sidebar/        # 导航树
-│   └── Viewer/         # HTML 预览
-└── App.tsx
 
-server/                 # 后端源码
-├── index.ts            # Express 入口
-├── routes/             # Service API 路由
-│   ├── categories.ts
-│   ├── topics.ts
-│   ├── files.ts
-│   └── templates.ts
-└── ai/
-    └── proxy.ts        # AI 提示词代理
+**directory.json 格式：**
+```json
+{
+  "categories": [
+    {
+      "name": "分类名称",
+      "icon": "FolderOpenOutlined",
+      "topics": [
+        { "id": "topic-id", "title": "话题标题", "file": "文件名.html" }
+      ]
+    }
+  ]
+}
 ```
+
+#### 调用 API
+
+系统提供两层 API：
+
+| 层 | 路径 | 用途 |
+|----|------|------|
+| Service API | `/api/*` | 返回 JSON 数据，供前端或脚本调用 |
+| AI Proxy | `/ai/*` | 返回 Markdown 提示词，供 AI 模型调用 |
+
+```bash
+# 获取话题列表
+curl http://localhost:1234/api/categories
+
+# 获取模板详情提示词（AI 可用此生成 HTML）
+curl http://localhost:1234/ai/templates/tech-doc
+
+# 查看所有 AI 接口
+curl http://localhost:1234/ai
+```
+
+#### 模板使用
+
+系统内置三种话题模板，可调用 AI 接口获取 HTML 生成指引：
+
+```bash
+curl http://localhost:1234/ai/templates/tech-doc    # 技术文档
+curl http://localhost:1234/ai/templates/review-doc   # 代码审查报告
+curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
+```
+
+### 有什么用
+
+- **话题化组织** — 以分类和话题的方式管理 HTML 内容，侧边栏导航清晰，适合文档站、知识库、作品集等场景。
+- **AI 辅助生成** — AI Proxy 层提供提示词接口，AI 模型可直接调用生成符合模板风格的 HTML 页面，减少重复工作。
+- **热更新** — 数据目录通过 Docker 卷挂载，添加或修改文件后刷新浏览器即生效，无需重启容器或重建镜像。
+- **工程化** — 基于 React 18 + Ant Design + TypeScript 构建，后端使用 Express，支持 Docker 一键部署。
 
 ---
 
@@ -131,31 +177,76 @@ server/                 # 后端源码
 
 # HtmlUI Topic Viewer
 
-A topic-based HTML content management and preview system. Built with React, Ant Design, and Express.
-
-### Architecture
-
+```mermaid
+mindmap
+  root((HtmlUI<br>Topic Viewer))
+    Install
+      Dependencies
+        Node.js 20+
+        npm install
+      Start
+        Development
+          npm run dev
+          npm run start
+        Production
+          npm run build
+          npm run start
+      Docker
+        docker build
+        docker run
+    Usage
+      Manage Content
+        Edit directory.json
+        Add HTML files
+        Refresh browser
+      API
+        Service API
+          Category CRUD
+          Topic CRUD
+          File mgmt
+          Templates
+        AI Proxy
+          /ai/* endpoints
+          Returns prompt text
+      Hot Reload
+        Volume mount
+        Instant update
+    Features
+      Topic-based CMS
+        Organized by category
+        Sidebar navigation
+        iframe preview
+      AI Integration
+        Prompt proxy
+        Template guidance
+        Automated content
+      Engineering
+        React + AntD
+        TypeScript
+        Docker
+        RESTful API
 ```
-Browser (SPA) → Express Server ─┬─ /api/*   → JSON CRUD
-                                 ├─ /ai/*    → Markdown prompts
-                                 └─ /topics/ → Static HTML files
-```
 
-- **SPA** — React 18 + Ant Design. Sidebar navigation with category/topic tree, HTML preview via iframe.
-- **Service API** (`/api/*`) — RESTful endpoints for categories, topics, files, and templates.
-- **AI Proxy** (`/ai/*`) — Mirrors the Service API but returns Markdown prompt text for AI agents.
-- **Data Layer** — Runtime data in `data/` directory, mounted as Docker volume for hot-reload.
+### Install
 
-### Quick Start
+**Prerequisites:** Node.js 20+
 
 ```bash
+git clone https://github.com/yuanxin518/HtmlUI-issue-viewer.git
+cd HtmlUI-issue-viewer
 npm install
-npm run dev        # Vite dev server on :1233
-npm run start      # Express API server on :1234
+```
+
+#### Start
+
+```bash
+# Development (frontend :1233, backend :1234)
+npm run dev       # Vite dev server
+npm run start     # Express API server
 
 # Production
-npm run build
-npm run start      # Serves both SPA and API on :1234
+npm run build     # Build frontend assets
+npm run start     # Unified on :1234
 ```
 
 #### Docker
@@ -168,73 +259,79 @@ docker run -d -p 1234:1234 \
   topic-viewer
 ```
 
-### API Reference
+### Usage
 
-#### Service Endpoints
+#### Manage Topics
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/categories` | List categories with topics |
-| POST | `/api/categories` | Create category |
-| PUT | `/api/categories/:name` | Update category |
-| DELETE | `/api/categories/:name` | Delete category |
-| POST | `/api/topics` | Add topic |
-| PUT | `/api/topics/:id` | Update topic |
-| DELETE | `/api/topics/:id` | Delete topic |
-| GET | `/api/files` | List HTML files |
-| POST | `/api/files/upload` | Upload HTML file |
-| POST | `/api/files/content` | Save HTML content |
-| DELETE | `/api/files/:filename` | Delete file |
-| GET | `/api/templates` | List templates |
-| GET | `/api/templates/:id` | Get template detail |
-
-#### AI Proxy Endpoints
-
-All `/ai/*` endpoints return Markdown prompt text instead of JSON.
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/ai` | List available AI endpoints |
-| GET | `/ai/categories` | Prompt: list categories |
-| POST | `/ai/categories` | Prompt: create category |
-| GET | `/ai/topics` | Prompt: list topics |
-| POST | `/ai/topics` | Prompt: add topic |
-| GET | `/ai/files` | Prompt: list files |
-| POST | `/ai/files/content` | Prompt: save HTML content |
-| GET | `/ai/templates` | Prompt: list templates |
-| GET | `/ai/templates/:id` | Prompt: get template detail |
-
-### Data Directory
+All runtime data lives in `data/` — no restart required:
 
 ```
 data/
 ├── directory.json     # Category and topic configuration
-└── topics/            # HTML topic files (not version-controlled)
+└── topics/            # HTML topic files
 ```
 
-### Project Structure
+```bash
+# 1. Place an HTML file
+cp output.html data/topics/my-topic.html
 
-```
-src/                    # Frontend
-├── types/              # TypeScript definitions
-├── api/                # API client
-├── hooks/              # Custom hooks
-├── components/         # UI components
-│   ├── Layout/         # App layout
-│   ├── Sidebar/        # Navigation tree
-│   └── Viewer/         # HTML preview
-└── App.tsx
+# 2. Edit the directory config
+vim data/directory.json
 
-server/                 # Backend
-├── index.ts            # Express entry point
-├── routes/             # Service API handlers
-│   ├── categories.ts
-│   ├── topics.ts
-│   ├── files.ts
-│   └── templates.ts
-└── ai/
-    └── proxy.ts        # AI prompt proxy
+# 3. Refresh browser
 ```
+
+**directory.json format:**
+```json
+{
+  "categories": [
+    {
+      "name": "Category Name",
+      "icon": "FolderOpenOutlined",
+      "topics": [
+        { "id": "topic-id", "title": "Topic Title", "file": "file.html" }
+      ]
+    }
+  ]
+}
+```
+
+#### API
+
+Two API layers are available:
+
+| Layer | Path | Purpose |
+|-------|------|---------|
+| Service API | `/api/*` | Returns JSON for frontend or scripts |
+| AI Proxy | `/ai/*` | Returns Markdown prompts for AI agents |
+
+```bash
+# List topics
+curl http://localhost:1234/api/categories
+
+# Get template prompt (AI uses this to generate HTML)
+curl http://localhost:1234/ai/templates/tech-doc
+
+# List all AI endpoints
+curl http://localhost:1234/ai
+```
+
+#### Templates
+
+Three built-in templates for AI-assisted HTML generation:
+
+```bash
+curl http://localhost:1234/ai/templates/tech-doc    # Technical docs
+curl http://localhost:1234/ai/templates/review-doc   # Code review
+curl http://localhost:1234/ai/templates/note-doc     # Knowledge notes
+```
+
+### Features
+
+- **Topic-based CMS** — Organize HTML content by category with sidebar navigation. Suitable for documentation hubs, knowledge bases, and portfolios.
+- **AI-assisted generation** — AI Proxy layer provides prompt endpoints. AI models can call these to generate template-styled HTML pages, reducing repetitive work.
+- **Hot reload** — Data directory is volume-mounted in Docker. Add or modify files, refresh the browser — no container restart or image rebuild needed.
+- **Engineering** — Built with React 18 + Ant Design + TypeScript, backed by Express, one-command Docker deployment.
 
 ---
 
