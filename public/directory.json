@@ -1,0 +1,35 @@
+{
+  "categories": [
+    {
+      "name": "React 入门",
+      "icon": "BookOutlined",
+      "topics": [
+        { "id": "react-intro", "title": "React 简介", "file": "react-intro.html" },
+        { "id": "react-hooks", "title": "React Hooks", "file": "react-hooks.html" }
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "icon": "CodeOutlined",
+      "topics": [
+        { "id": "ts-basics", "title": "TypeScript 基础", "file": "ts-basics.html" },
+        { "id": "ts-advanced", "title": "TypeScript 进阶", "file": "ts-advanced.html" }
+      ]
+    },
+    {
+      "name": "AI 工具链",
+      "icon": "RobotOutlined",
+      "topics": [
+        { "id": "ai-intro", "title": "AI 工具链概览", "file": "ai-intro.html" },
+        { "id": "prompt-engineering", "title": "提示词工程", "file": "prompt-engineering.html" }
+      ]
+    },
+    {
+      "name": "代码审查",
+      "icon": "FileTextOutlined",
+      "topics": [
+        { "id": "review-current", "title": "竣工存档 — 汇总页权限 + 投标按钮重构", "file": "review-current.html" }
+      ]
+    }
+  ]
+}

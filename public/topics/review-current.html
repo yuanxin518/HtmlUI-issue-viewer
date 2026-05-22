@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review — 提示词驱动</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --text-muted: #8b949e; --accent: #58a6ff;
+    --add-bg: #0c2d1d; --add-line: #238636; --add-text: #3fb950;
+    --del-bg: #3d1417; --del-line: #da3633; --del-text: #f85149;
+    --tag-bg: #1f6feb33;
+    --user-input-bg: #1a1d2e; --user-input-border: #3730a3;
+    --analysis-bg: #1c2128;
+    --sidebar-width: 320px;
+    --sidebar-bg: #0d1117;
+    --chunk-bg: #161b22;
+    --chunk-border: #30363d;
+    --chunk-hover: #1c2333;
+    --chunk-active: #1f6feb22;
+    --chunk-active-border: #58a6ff;
+    --highlight-bg: rgba(88, 166, 255, 0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ══════ sidebar: 提示词列表 ══════ */
+  .sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .sidebar-title {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1.2px;
+    padding: 0 16px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sidebar-title .count {
+    background: var(--tag-bg); color: var(--accent);
+    font-size: 11px; padding: 0 8px; border-radius: 10px;
+    font-weight: 600;
+  }
+
+  /* 提示词块卡片 */
+  .prompt-chunk {
+    margin: 0 12px 10px;
+    background: var(--chunk-bg);
+    border: 1px solid var(--chunk-border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .prompt-chunk:hover {
+    border-color: var(--text-muted);
+    background: var(--chunk-hover);
+  }
+  .prompt-chunk.active {
+    border-color: var(--chunk-active-border);
+    background: var(--chunk-active);
+    box-shadow: 0 0 0 1px var(--chunk-active-border);
+  }
+
+  .chunk-header {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chunk-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .chunk-files {
+    display: flex; gap: 4px; flex-wrap: wrap; flex: 1;
+  }
+  .chunk-file-tag {
+    font-size: 10px;
+    padding: 1px 8px;
+    border-radius: 8px;
+    background: var(--tag-bg);
+    color: var(--accent);
+    font-family: 'SF Mono', monospace;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chunk-stats {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .chunk-stats .sa { color: var(--add-text); }
+  .chunk-stats .sd { color: var(--del-text); }
+
+  .chunk-body {
+    padding: 0 14px 10px 48px;
+    font-size: 13px;
+    color: #c7d2fe;
+    line-height: 1.6;
+  }
+  .chunk-body .quote-mark {
+    color: #6366f1;
+    user-select: none;
+  }
+
+  /* 关联文件路径 */
+  .chunk-path {
+    padding: 4px 14px 8px 48px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', monospace;
+  }
+  .chunk-path span { background: var(--sidebar-bg); padding: 1px 6px; border-radius: 4px; }
+
+  /* ══════ main content ══════ */
+  .main-content {
+    flex: 1;
+    padding: 32px 40px;
+    min-width: 0;
+  }
+  .review-container { max-width: 1100px; }
+
+  .page-header {
+    margin-bottom: 32px;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 600; }
+  .page-header .path {
+    font-size: 13px; color: var(--text-muted);
+    font-family: 'SF Mono', 'Fira Code', monospace; margin-top: 4px;
+  }
+  .page-stats { display: flex; gap: 8px; font-size: 13px; font-weight: 600; }
+  .stat { padding: 4px 12px; border-radius: 20px; }
+  .stat-add { background: var(--add-bg); color: var(--add-text); }
+  .stat-del { background: var(--del-bg); color: var(--del-text); }
+
+  /* ── change group ── */
+  .change-group {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 20px; overflow: hidden;
+    scroll-margin-top: 16px;
+    display: none;
+  }
+  .change-group.visible { display: block; }
+  .change-group.highlight {
+    box-shadow: 0 0 0 2px var(--chunk-active-border);
+  }
+
+  .group-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .group-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .group-title { font-size: 15px; font-weight: 600; }
+  .group-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media (max-width: 800px) { .group-body { grid-template-columns: 1fr; } }
+
+  .code-side {
+    padding: 12px 0; overflow-x: auto;
+    border-right: 1px solid var(--border);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; line-height: 1.7;
+  }
+  @media (max-width: 800px) {
+    .code-side { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  .code-line { display: flex; align-items: flex-start; padding: 1px 0; }
+  .code-line .ln {
+    width: 40px; min-width: 40px; text-align: right;
+    padding-right: 12px; color: var(--text-muted); font-size: 12px; user-select: none;
+  }
+  .code-line .code {
+    flex: 1; padding: 0 16px 0 0;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .cl-add { background: var(--add-bg); }
+  .cl-del { background: var(--del-bg); }
+  .cl-ctx { background: transparent; }
+  .cl-add .code { border-left: 3px solid var(--add-line); padding-left: 10px; }
+  .cl-del .code { border-left: 3px solid var(--del-line); padding-left: 10px; }
+  .cl-ctx .code { border-left: 3px solid transparent; padding-left: 10px; }
+  .cl-marker { user-select: none; font-weight: 700; margin-right: 6px; }
+  .m-add { color: var(--add-text); }
+  .m-del { color: var(--del-text); }
+  .m-ctx { color: var(--text-muted); }
+
+  .note-side { display: flex; flex-direction: column; gap: 0; }
+  .user-input {
+    padding: 12px 20px;
+    background: var(--user-input-bg);
+    border-bottom: 1px solid var(--user-input-border);
+  }
+  .user-input .label {
+    font-size: 11px; font-weight: 600; color: #818cf8;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .user-input .quote {
+    font-size: 13px; color: #c7d2fe; line-height: 1.7;
+    font-style: italic; padding-left: 12px; border-left: 3px solid #4f46e5;
+  }
+  .user-input .quote::before, .user-input .quote::after { color: #6366f1; }
+  .user-input .quote::before { content: '"'; }
+  .user-input .quote::after { content: '"'; }
+
+  .analysis {
+    padding: 12px 20px; background: var(--analysis-bg);
+    flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px;
+  }
+  .analysis .label {
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .analysis .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 12px;
+    background: var(--tag-bg); color: var(--accent); align-self: flex-start;
+  }
+  .analysis .desc { font-size: 14px; line-height: 1.7; color: var(--text); }
+  .analysis .desc code {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+    background: #1f6feb22; color: var(--accent); padding: 1px 6px; border-radius: 4px;
+  }
+  .analysis .desc strong { color: #f0c040; }
+  .analysis .impact { font-size: 12px; color: var(--text-muted); }
+
+  /* 空状态 */
+  .empty-state {
+    display: none;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state.visible { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ══════ sidebar: 提示词块 ══════ -->
+<div class="sidebar">
+  <div class="sidebar-title">
+    🗣️ 提示词 <span class="count">3</span>
+  </div>
+
+  <!-- chunk 1 -->
+  <div class="prompt-chunk active" data-targets="group-3" onclick="selectChunk(this)">
+    <div class="chunk-header">
+      <div class="chunk-num">1</div>
+      <div class="chunk-files">
+        <span class="chunk-file-tag">CompletionArchiveManage</span>
+      </div>
+      <span class="chunk-stats"><span class="sa">+10</span> <span class="sd">−2</span></span>
+    </div>
+    <div class="chunk-body">
+      <span class="quote-mark">"</span>如果是汇总页 则fixedUrl要走汇总页的url<span class="quote-mark">"</span>
+    </div>
+    <div class="chunk-body" style="padding-top:0">
+      <span class="quote-mark">"</span>现在审批按钮没有通过审批的权限来判断 hasCommonEBP<span class="quote-mark">"</span>
+    </div>
+  </div>
+
+  <!-- chunk 2 -->
+  <div class="prompt-chunk" data-targets="group-2" onclick="selectChunk(this)">
+    <div class="chunk-header">
+      <div class="chunk-num">2</div>
+      <div class="chunk-files">
+        <span class="chunk-file-tag">ProBiddingOperationManage</span>
+      </div>
+      <span class="chunk-stats"><span class="sa">+2</span> <span class="sd">−7</span></span>
+    </div>
+    <div class="chunk-body">
+      <span class="quote-mark">"</span>中止投标按钮不要用黄色，就用跟编辑这样一样的<span class="quote-mark">"</span>
+    </div>
+    <div class="chunk-body" style="padding-top:0">
+      <span class="quote-mark">"</span>按钮放在作废按钮前面，解除中止也是一样的改法<span class="quote-mark">"</span>
+    </div>
+    <div class="chunk-body" style="padding-top:0">
+      <span class="quote-mark">"</span>中止投标只在开标评标的状态下展示<span class="quote-mark">"</span>
+    </div>
+  </div>
+
+  <!-- chunk 3 -->
+  <div class="prompt-chunk" data-targets="group-1" onclick="selectChunk(this)">
+    <div class="chunk-header">
+      <div class="chunk-num">3</div>
+      <div class="chunk-files">
+        <span class="chunk-file-tag">management.ts</span>
+      </div>
+      <span class="chunk-stats"><span class="sa">+9</span></span>
+    </div>
+    <div class="chunk-body">
+      <span class="quote-mark">"</span>汇总页路由<span class="quote-mark">"</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ main content ══════ -->
+<div class="main-content">
+<div class="review-container">
+
+  <div class="page-header">
+    <div>
+      <h1>📋 变更内容</h1>
+      <div class="path">3 files, +21 / −9 · 点击左侧提示词查看关联变更</div>
+    </div>
+    <div class="page-stats">
+      <span class="stat stat-add">+21</span>
+      <span class="stat stat-del">−9</span>
+      <span class="stat" style="background:var(--tag-bg);color:var(--accent);">3 个提示词</span>
+    </div>
+  </div>
+
+  <!-- 空状态 -->
+  <div class="empty-state visible" id="emptyState">
+    <div class="icon">👈</div>
+    <div style="font-size:16px;font-weight:500;margin-bottom:8px">点击左侧提示词块</div>
+    <div style="font-size:13px;color:var(--text-muted)">每个提示词关联对应的代码变更，选中后在此展示</div>
+  </div>
+
+  <!-- ══════ group 1 ══════ -->
+  <div class="change-group" id="group-1">
+    <div class="group-header">
+      <div class="group-num">1</div>
+      <div class="group-title">新增汇总页路由 — CompletionArchiveSummary</div>
+    </div>
+    <div class="group-body">
+      <div class="code-side">
+        <div class="code-line cl-add"><span class="ln">+1081</span><span class="code"><span class="cl-marker m-add">+</span>  // 竣工存档资料汇总</span></div>
+        <div class="code-line cl-add"><span class="ln">+1082</span><span class="code"><span class="cl-marker m-add">+</span>  {</span></div>
+        <div class="code-line cl-add"><span class="ln">+1083</span><span class="code"><span class="cl-marker m-add">+</span>    path: '/Management/CompletionArchiveSummary/:pageType',</span></div>
+        <div class="code-line cl-add"><span class="ln">+1084</span><span class="code"><span class="cl-marker m-add">+</span>    name: 'CompletionArchiveSummary',</span></div>
+        <div class="code-line cl-add"><span class="ln">+1085</span><span class="code"><span class="cl-marker m-add">+</span>    component: () =&gt;</span></div>
+        <div class="code-line cl-add"><span class="ln">+1086</span><span class="code"><span class="cl-marker m-add">+</span>      import(</span></div>
+        <div class="code-line cl-add"><span class="ln">+1087</span><span class="code"><span class="cl-marker m-add">+</span>        /* webpackChunkName: "Management" */ '@/views/qgczxProject/CompletionArchiveManage/index.vue'</span></div>
+        <div class="code-line cl-add"><span class="ln">+1088</span><span class="code"><span class="cl-marker m-add">+</span>      ),</span></div>
+        <div class="code-line cl-add"><span class="ln">+1089</span><span class="code"><span class="cl-marker m-add">+</span>  },</span></div>
+      </div>
+      <div class="note-side">
+        <div class="analysis" style="justify-content:flex-start;padding-top:20px">
+          <div class="label">🧠 分析</div>
+          <span class="tag">路由</span>
+          <div class="desc">新增汇总页路由，复用 <code>CompletionArchiveManage/index.vue</code></div>
+          <div class="impact">🌍 汇总页入口</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ group 2 ══════ -->
+  <div class="change-group" id="group-2">
+    <div class="group-header">
+      <div class="group-num">2</div>
+      <div class="group-title">投标作业 — 中止/解除中止/作废按钮重构</div>
+    </div>
+    <div class="group-body">
+      <div class="code-side">
+        <div class="code-line cl-del"><span class="ln">253</span><span class="code"><span class="cl-marker m-del">−</span>&lt;el-button v-if="$OP('管理员作废')" @click="doInvalid(row)"&gt;作废&lt;/el-button&gt;</span></div>
+        <div class="code-line cl-del"><span class="ln">255</span><span class="code"><span class="cl-marker m-del">−</span>  v-if="</span></div>
+        <div class="code-line cl-del"><span class="ln">256</span><span class="code"><span class="cl-marker m-del">−</span>    row.pboState !== PRO_BIDDING_OPERATION_STATE.l2v('投标中止') &amp;&amp;</span></div>
+        <div class="code-line cl-del"><span class="ln">257</span><span class="code"><span class="cl-marker m-del">−</span>    row.pboState !== PRO_BIDDING_OPERATION_STATE.l2v('项目存档')</span></div>
+        <div class="code-line cl-del"><span class="ln">258</span><span class="code"><span class="cl-marker m-del">−</span>  "</span></div>
+        <div class="code-line cl-del"><span class="ln">259</span><span class="code"><span class="cl-marker m-del">−</span>  type="warning"</span></div>
+        <div class="code-line cl-add"><span class="ln">260</span><span class="code"><span class="cl-marker m-add">+</span>  v-if="row.pboState === PRO_BIDDING_OPERATION_STATE.l2v('开标评标')"</span></div>
+        <div class="code-line cl-ctx"><span class="ln">261</span><span class="code"><span class="cl-marker m-ctx"> </span>  @click="doCancelBid(row)"</span></div>
+        <div class="code-line cl-ctx"><span class="ln">262</span><span class="code"><span class="cl-marker m-ctx"> </span>&gt;</span></div>
+        <div class="code-line cl-ctx"><span class="ln">263</span><span class="code"><span class="cl-marker m-ctx"> </span>  中止投标</span></div>
+        <div class="code-line cl-ctx"><span class="ln">264</span><span class="code"><span class="cl-marker m-ctx"> </span>&lt;/el-button&gt;</span></div>
+        <div class="code-line cl-ctx"><span class="ln">265</span><span class="code"><span class="cl-marker m-ctx"> </span>  &lt;el-button</span></div>
+        <div class="code-line cl-ctx"><span class="ln">266</span><span class="code"><span class="cl-marker m-ctx"> </span>  v-if="row.pboState === PRO_BIDDING_OPERATION_STATE.l2v('投标中止')"</span></div>
+        <div class="code-line cl-del"><span class="ln">267</span><span class="code"><span class="cl-marker m-del">−</span>  type="primary"</span></div>
+        <div class="code-line cl-ctx"><span class="ln">268</span><span class="code"><span class="cl-marker m-ctx"> </span>  @click="doRestoreBid(row)"</span></div>
+        <div class="code-line cl-ctx"><span class="ln">269</span><span class="code"><span class="cl-marker m-ctx"> </span>&gt;</span></div>
+        <div class="code-line cl-ctx"><span class="ln">270</span><span class="code"><span class="cl-marker m-ctx"> </span>  解除中止</span></div>
+        <div class="code-line cl-ctx"><span class="ln">271</span><span class="code"><span class="cl-marker m-ctx"> </span>&lt;/el-button&gt;</span></div>
+        <div class="code-line cl-add"><span class="ln">273</span><span class="code"><span class="cl-marker m-add">+</span>&lt;el-button v-if="$OP('管理员作废')" @click="doInvalid(row)"&gt;作废&lt;/el-button&gt;</span></div>
+      </div>
+      <div class="note-side">
+        <div class="user-input"><div class="label">🗣️ 原始需求</div><div class="quote">中止投标按钮不要用黄色，就用跟编辑这样一样的。按钮放在作废按钮前面，解除中止也是一样的改法。中止投标只在开标评标的状态下展示。</div></div>
+        <div class="analysis">
+          <div class="label">🧠 分析</div>
+          <span class="tag">样式 / 顺序 / 条件</span>
+          <div class="desc"><strong>条件</strong>：排除状态 → <strong>仅限开标评标</strong><br><strong>样式</strong>：移除 <code>type="warning"</code>/<code>type="primary"</code><br><strong>顺序</strong>：作废移到解除中止之后</div>
+          <div class="impact">🎨+🎯 三项调整</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ group 3 ══════ -->
+  <div class="change-group" id="group-3">
+    <div class="group-header">
+      <div class="group-num">3</div>
+      <div class="group-title">汇总页 permitUrl + hasCommonEBP 权限</div>
+    </div>
+    <div class="group-body">
+      <div class="code-side">
+        <div class="code-line cl-add"><span class="ln">+29</span><span class="code"><span class="cl-marker m-add">+</span>import { useExaminePermission } from '@/hooks/auth/use-examine-permission'</span></div>
+        <div class="code-line cl-add"><span class="ln">+80</span><span class="code"><span class="cl-marker m-add">+</span>const permitUrl = computed(() =&gt; `/Summary/CompletionArchiveManage/${pageDataType.value}`)</span></div>
+        <div class="code-line cl-add"><span class="ln">+212</span><span class="code"><span class="cl-marker m-add">+</span>const { hasCommonEBP } = useExaminePermission()</span></div>
+        <div class="code-line cl-del"><span class="ln">256</span><span class="code"><span class="cl-marker m-del">−</span>          :permitUrl="`/QgczxProject/TrackAudit/CompletionArchiveManage/${pageDataType}`"</span></div>
+        <div class="code-line cl-add"><span class="ln">260</span><span class="code"><span class="cl-marker m-add">+</span>          :permitUrl="permitUrl"</span></div>
+        <div class="code-line cl-del"><span class="ln">345</span><span class="code"><span class="cl-marker m-del">−</span>            v-if="!row.qpcadIsCancel &amp;&amp; row.qpcadState === COMPLETION_ARCHIVE_STATUS.l2v('待审批')"</span></div>
+        <div class="code-line cl-add"><span class="ln">+349</span><span class="code"><span class="cl-marker m-add">+</span>            v-if="</span></div>
+        <div class="code-line cl-add"><span class="ln">+350</span><span class="code"><span class="cl-marker m-add">+</span>              !row.qpcadIsCancel &amp;&amp;</span></div>
+        <div class="code-line cl-add"><span class="ln">+351</span><span class="code"><span class="cl-marker m-add">+</span>              row.qpcadState === COMPLETION_ARCHIVE_STATUS.l2v('待审批') &amp;&amp;</span></div>
+        <div class="code-line cl-add"><span class="ln">+352</span><span class="code"><span class="cl-marker m-add">+</span>              hasCommonEBP(row.id, row.qpcadLcType, 'APPROVED')</span></div>
+        <div class="code-line cl-add"><span class="ln">+353</span><span class="code"><span class="cl-marker m-add">+</span>            "</span></div>
+      </div>
+      <div class="note-side">
+        <div class="user-input"><div class="label">🗣️ 原始需求</div><div class="quote">如果是汇总页 则fixedUrl要走汇总页的url。现在审批按钮没有通过审批的权限来判断 hasCommonEBP。</div></div>
+        <div class="analysis">
+          <div class="label">🧠 分析</div>
+          <span class="tag">权限</span>
+          <div class="desc"><strong>permitUrl</strong>：统一走汇总页路径<br><strong>hasCommonEBP</strong>：审批按钮加权限判断</div>
+          <div class="impact">🔐 权限控制</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// 默认选中第一个提示词
+document.addEventListener('DOMContentLoaded', () => {
+  const first = document.querySelector('.prompt-chunk');
+  if (first) selectChunk(first);
+});
+
+function selectChunk(el) {
+  // 更新选中态
+  document.querySelectorAll('.prompt-chunk').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  // 获取关联的 target groups
+  const targets = (el.dataset.targets || '').split(' ');
+  
+  // 隐藏所有 change-group
+  document.querySelectorAll('.change-group').forEach(g => g.classList.remove('visible', 'highlight'));
+  
+  // 显示关联的
+  let firstTarget = null;
+  targets.forEach(id => {
+    const group = document.getElementById(id);
+    if (group) {
+      group.classList.add('visible');
+      if (!firstTarget) firstTarget = group;
+    }
+  });
+
+  // 空状态
+  document.getElementById('emptyState').classList.toggle('visible', targets.length === 0);
+
+  // 滚动到第一个
+  if (firstTarget) {
+    setTimeout(() => firstTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+</script>
+</body>
+</html>

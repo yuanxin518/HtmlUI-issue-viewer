@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React 简介</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; max-width: 800px; margin: 0 auto; padding: 32px 24px; color: #333; }
+  h1 { font-size: 28px; border-bottom: 2px solid #61dafb; padding-bottom: 8px; }
+  h2 { font-size: 20px; margin-top: 28px; color: #20232a; }
+  code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+  pre { background: #282c34; color: #abb2bf; padding: 16px; border-radius: 8px; overflow-x: auto; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .card { background: #f0f8ff; border-left: 4px solid #61dafb; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+</style>
+</head>
+<body>
+<h1>⚛️ React 简介</h1>
+<p>React 是一个用于构建用户界面的 JavaScript 库，由 Meta（原 Facebook）开发和维护。</p>
+
+<div class="card">
+<strong>核心特点：</strong>声明式、组件化、跨平台。
+</div>
+
+<h2>声明式 UI</h2>
+<p>React 让你以声明式的方式描述 UI，当数据变化时自动高效更新视图。</p>
+<pre><code>function Welcome({ name }) {
+  return &lt;h1&gt;Hello, {name}!&lt;/h1&gt;
+}</code></pre>
+
+<h2>组件化</h2>
+<p>将 UI 拆分为独立、可复用的组件，每个组件管理自己的状态。</p>
+<pre><code>function App() {
+  const [count, setCount] = useState(0)
+  return (
+    &lt;button onClick={() =&gt; setCount(c + 1)}&gt;
+      Count: {count}
+    &lt;/button&gt;
+  )
+}</code></pre>
+
+<h2>生态丰富</h2>
+<ul>
+  <li><strong>React Router</strong> — 路由管理</li>
+  <li><strong>Ant Design</strong> — UI 组件库</li>
+  <li><strong>Zustand / Redux</strong> — 状态管理</li>
+  <li><strong>Next.js</strong> — 全栈框架</li>
+</ul>
+</body>
+</html>

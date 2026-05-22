@@ -1,0 +1,18 @@
+# 运行时数据（话题 HTML + 目录配置）
+/data/
+
+# 构建产物
+/dist/
+
+# 依赖
+/node_modules/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
