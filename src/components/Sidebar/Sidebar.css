@@ -1,0 +1,26 @@
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  height: 100vh;
+  border-right: 1px solid #f0f0f0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.sidebar-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.sidebar-menu {
+  border-inline-end: none !important;
+  flex: 1;
+}

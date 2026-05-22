@@ -1,20 +1,22 @@
-# ===== Build stage =====
-FROM node:20-alpine AS build
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install
+# Install ALL deps
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
 
-COPY . .
+# Copy source
+COPY tsconfig.json vite.config.ts index.html ./
+COPY src/ src/
+COPY public/ public/
+COPY server/ server/
+
+# Build frontend
 RUN npm run build
 
-# ===== Serve stage =====
-FROM nginx:alpine
+EXPOSE 3000
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+ENV DATA_DIR=/app/data
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npx", "tsx", "server/index.ts"]
