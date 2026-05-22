@@ -8,7 +8,7 @@ import { templatesRouter } from './routes/templates';
 import { aiRouter } from './ai/proxy';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 1234;
 const DATA_DIR = process.env.DATA_DIR || path.resolve(process.cwd(), 'data');
 
 app.use(cors());
