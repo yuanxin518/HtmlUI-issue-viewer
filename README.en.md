@@ -52,70 +52,39 @@ docker run -d -p 1234:1234 \
 
 ### Usage
 
-#### Prompt Example
-
-Copy the following prompt and send it directly to an AI to generate a topic HTML page:
+Copy the complete prompt below and send it to an AI. It will generate the HTML page and create the topic via API automatically.
 
 ```markdown
-Generate a technical documentation style HTML page with these requirements:
+## Task
 
-- Dark theme (background #0d1117, text #e6edf3)
-- Title with emoji + text, e.g. "📖 React Introduction"
+Create a new topic in the HtmlUI Topic Viewer system.
+
+## Topic Details
+
+- Category: React 入门
+- Topic ID: react-intro
+- Topic Title: React 简介
+- File Name: react-intro.html
+
+## HTML Requirements
+
+Generate a technical documentation style page with these requirements:
+
+- Dark theme, background #0d1117, text #e6edf3
+- Title with emoji, e.g. "📖 React 简介"
 - Each section separated by <h2>
 - Code examples in <pre><code> with dark background
 - Key tips wrapped in <div class="card">
+- Output a complete <!DOCTYPE html> file
 
-Output a complete HTML file with <!DOCTYPE html> declaration.
-```
+## Steps
 
-Once the AI returns the HTML, follow the steps below to save it into the system.
-
-#### Implementation Steps
-
-**1. Get template guidance (optional)**
-
-Built-in templates provide detailed HTML structure requirements:
-
-```bash
-curl http://localhost:1234/ai/templates/tech-doc    # Technical docs
-curl http://localhost:1234/ai/templates/review-doc   # Code review
-curl http://localhost:1234/ai/templates/note-doc     # Knowledge notes
-```
-
-**2. Save the HTML file**
-
-Save the AI-generated HTML content into `data/topics/`:
-
-```bash
-curl -X POST http://localhost:1234/api/files/content \
-  -H "Content-Type: application/json" \
-  -d '{
-    "filename": "react-intro.html",
-    "content": "<!DOCTYPE html>..."
-  }'
-```
-
-**3. Register the topic**
-
-Add the new file as a topic entry, then refresh the browser to view it:
-
-```bash
-curl -X POST http://localhost:1234/api/topics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "categoryName": "React 入门",
-    "id": "react-intro",
-    "title": "React 简介",
-    "file": "react-intro.html"
-  }'
-```
-
-#### Flow
-
-```
-Prompt → AI generates HTML → Save file → Register topic → Browser shows it
-                                ↑              ↑
-                        POST /api/files/content  POST /api/topics
+1. Generate the complete HTML content following the requirements above
+2. Call POST /api/files/content to save the file
+   Body: { "filename": "react-intro.html", "content": "full HTML content" }
+3. Call POST /api/topics to register the topic
+   Body: { "categoryName": "React 入门", "id": "react-intro", "title": "React 简介", "file": "react-intro.html" }
+4. Tell the user to refresh the browser to view the new topic
 ```
 
 ---

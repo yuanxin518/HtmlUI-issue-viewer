@@ -52,70 +52,39 @@ docker run -d -p 1234:1234 \
 
 ### 怎么用
 
-#### 提示词示例
-
-把以下提示词直接发给 AI，即可生成一个话题 HTML 页面：
+把以下完整提示词发给 AI，它会自动生成 HTML 页面并通过接口创建话题：
 
 ```markdown
-请生成一个技术文档风格的话题 HTML 页面，要求如下：
+## 任务
 
-- 深色主题（背景 #0d1117，文字 #e6edf3）
-- 标题使用 emoji + 文字，如 "📖 React 入门"
-- 每个小节用 <h2> 分隔
-- 代码示例使用 <pre><code>，深色背景
-- 关键提示用卡片 <div class="card"> 包裹
+在 HtmlUI Topic Viewer 系统中创建一个新话题。
 
-输出一个完整的 HTML 文件，包含 <!DOCTYPE html> 声明。
-```
+## 话题信息
 
-AI 返回 HTML 内容后，按以下步骤存入系统。
+- 分类：React 入门
+- 话题 ID：react-intro
+- 话题标题：React 简介
+- 存放文件：react-intro.html
 
-#### 实现步骤
+## HTML 内容要求
 
-**1. 获取模板指引（可选）**
+请生成一个技术文档风格的话题页面，要求如下：
 
-系统内置模板可提供更详细的 HTML 结构要求：
+- 深色主题，背景 #0d1117，文字颜色 #e6edf3
+- 标题带 emoji，如 "📖 React 简介"
+- 每个小节使用 <h2> 分隔
+- 代码示例用 <pre><code>，深色背景
+- 关键提示用 <div class="card"> 样式卡片包裹
+- 输出完整的 <!DOCTYPE html> 文件
 
-```bash
-curl http://localhost:1234/ai/templates/tech-doc    # 技术文档
-curl http://localhost:1234/ai/templates/review-doc   # 代码审查
-curl http://localhost:1234/ai/templates/note-doc     # 知识笔记
-```
+## 执行步骤
 
-**2. 保存 HTML 文件**
-
-将 AI 返回的 HTML 内容保存到 `data/topics/`：
-
-```bash
-curl -X POST http://localhost:1234/api/files/content \
-  -H "Content-Type: application/json" \
-  -d '{
-    "filename": "react-intro.html",
-    "content": "<!DOCTYPE html>..."
-  }'
-```
-
-**3. 注册话题**
-
-将新文件添加为话题，刷新页面即可展示：
-
-```bash
-curl -X POST http://localhost:1234/api/topics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "categoryName": "React 入门",
-    "id": "react-intro",
-    "title": "React 简介",
-    "file": "react-intro.html"
-  }'
-```
-
-#### 完整流程
-
-```
-提示词 → AI 生成 HTML → 保存文件 → 注册话题 → 浏览器展示
-                          ↑              ↑
-                  POST /api/files/content  POST /api/topics
+1. 先生成符合上述要求的完整 HTML 内容
+2. 调用 POST /api/files/content 接口保存文件
+   请求体：{ "filename": "react-intro.html", "content": "完整的 HTML 内容" }
+3. 调用 POST /api/topics 接口注册话题
+   请求体：{ "categoryName": "React 入门", "id": "react-intro", "title": "React 简介", "file": "react-intro.html" }
+4. 告知用户刷新浏览器即可查看新话题
 ```
 
 ---
